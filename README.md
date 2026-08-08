@@ -54,7 +54,7 @@ ESPHome downloads the external component from this public repository during vali
 
 ```yaml
 external_components:
-  - source: github://crestall/ESPHome-Davey-Spa-Controller@main
+  - source: github://crestall/davey-esphome-spa-controller@main
     components:
       - pool_controller
     refresh: 1h
