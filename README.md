@@ -57,10 +57,20 @@ external_components:
   - source: github://crestall/davey-esphome-spa-controller@main
     components:
       - pool_controller
-    refresh: 1h
+    refresh: 0s
 ```
 
 Pin a release tag instead of `main` for a stable installation once releases are available.
+
+### Stale external component cache
+
+If a build log still shows `class PoolController : public Component, public uart::UARTDevice`, ESPHome is compiling an obsolete cached copy. Current `main` uses `UARTComponent` composition and does not contain that declaration.
+
+1. Set `refresh: 0s` in the `external_components` block as shown above.
+2. In ESPHome Device Builder, select **Clean Build Files** for the device.
+3. Validate or install again. The log should show ESPHome cloning or fetching this repository before generating C++.
+
+The `refresh: 0s` setting is appropriate while following `main`. A future tagged release can use a longer refresh interval because its source will be immutable.
 
 ## How the protocol was obtained
 

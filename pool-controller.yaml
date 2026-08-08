@@ -39,7 +39,7 @@ external_components:
   - source: github://crestall/davey-esphome-spa-controller@main
     components:
       - pool_controller
-    refresh: 1h
+    refresh: 0s
 
 uart:
   id: pool_bus
