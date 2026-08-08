@@ -29,7 +29,6 @@ void PoolController::setup() {
 void PoolController::dump_config() {
   ESP_LOGCONFIG(TAG, "Pool controller:");
   LOG_PIN("  RS-485 direction pin: ", this->direction_pin_);
-  this->check_uart_settings(19200, 1, uart::UART_CONFIG_PARITY_NONE, 8);
 }
 
 bool PoolController::deadline_reached_(uint32_t now, uint32_t deadline) {
@@ -37,9 +36,9 @@ bool PoolController::deadline_reached_(uint32_t now, uint32_t deadline) {
 }
 
 void PoolController::loop() {
-  while (this->available()) {
+  while (this->uart_parent_->available()) {
     uint8_t value;
-    if (this->read_byte(&value))
+    if (this->uart_parent_->read_byte(&value))
       this->consume_byte_(value);
   }
 
@@ -152,8 +151,8 @@ void PoolController::send_frame_(const uint8_t payload[3]) {
 
   this->direction_pin_->digital_write(true);
   delay(2);
-  this->write_array(frame.data(), frame.size());
-  this->flush();
+  this->uart_parent_->write_array(frame.data(), frame.size());
+  this->uart_parent_->flush();
   this->direction_pin_->digital_write(false);
 }
 

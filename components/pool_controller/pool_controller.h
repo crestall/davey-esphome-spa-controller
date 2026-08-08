@@ -8,7 +8,7 @@
 #include "esphome/components/select/select.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/text_sensor/text_sensor.h"
-#include "esphome/components/uart/uart.h"
+#include "esphome/components/uart/uart_component.h"
 #include "esphome/core/component.h"
 #include "esphome/core/gpio.h"
 
@@ -45,8 +45,9 @@ class BlowerCycleButton : public button::Button {
   PoolController *parent_;
 };
 
-class PoolController : public Component, public uart::UARTDevice {
+class PoolController : public Component {
  public:
+  void set_uart_parent(uart::UARTComponent *parent) { uart_parent_ = parent; }
   void set_direction_pin(GPIOPin *pin) { direction_pin_ = pin; }
   void set_pump_a(PoolSwitch *entity) { pump_a_entity_ = entity; }
   void set_pump_b(PoolSwitch *entity) { pump_b_entity_ = entity; }
@@ -94,6 +95,7 @@ class PoolController : public Component, public uart::UARTDevice {
   static std::string display_text_(const std::vector<uint8_t> &payload);
   static std::string upper_(std::string value);
 
+  uart::UARTComponent *uart_parent_{nullptr};
   GPIOPin *direction_pin_{nullptr};
   PoolSwitch *pump_a_entity_{nullptr};
   PoolSwitch *pump_b_entity_{nullptr};

@@ -15,9 +15,7 @@ CONF_BLOWER_CYCLE = "blower_cycle"
 CONF_BLOWER_STATE = "blower_state"
 
 pool_controller_ns = cg.esphome_ns.namespace("pool_controller")
-PoolController = pool_controller_ns.class_(
-    "PoolController", cg.Component, uart.UARTDevice
-)
+PoolController = pool_controller_ns.class_("PoolController", cg.Component)
 PoolSwitch = pool_controller_ns.class_("PoolSwitch", switch.Switch)
 HeaterPumpSelect = pool_controller_ns.class_("HeaterPumpSelect", select.Select)
 BlowerCycleButton = pool_controller_ns.class_("BlowerCycleButton", button.Button)
