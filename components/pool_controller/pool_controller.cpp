@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <cctype>
 
+#include "esphome/core/hal.h"
+#include "esphome/core/log.h"
+
 namespace esphome {
 namespace pool_controller {
 

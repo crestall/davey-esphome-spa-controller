@@ -4,7 +4,13 @@
 #include <string>
 #include <vector>
 
-#include "esphome.h"
+#include "esphome/components/button/button.h"
+#include "esphome/components/select/select.h"
+#include "esphome/components/switch/switch.h"
+#include "esphome/components/text_sensor/text_sensor.h"
+#include "esphome/components/uart/uart.h"
+#include "esphome/core/component.h"
+#include "esphome/core/gpio.h"
 
 namespace esphome {
 namespace pool_controller {
