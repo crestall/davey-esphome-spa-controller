@@ -6,6 +6,7 @@
 
 #include "esphome/components/button/button.h"
 #include "esphome/components/select/select.h"
+#include "esphome/components/sensor/sensor.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/uart/uart_component.h"
@@ -53,6 +54,7 @@ class PoolController : public Component {
   void set_pump_b(PoolSwitch *entity) { pump_b_entity_ = entity; }
   void set_heater_pump(HeaterPumpSelect *entity) { heater_entity_ = entity; }
   void set_blower_state(text_sensor::TextSensor *entity) { blower_state_entity_ = entity; }
+  void set_pool_temp(sensor::Sensor *entity) { pool_temp_entity_ = entity; }
 
   void setup() override;
   void loop() override;
@@ -84,6 +86,7 @@ class PoolController : public Component {
   void handle_frame_(uint8_t command, const std::vector<uint8_t> &payload);
   void update_equipment_(const std::vector<uint8_t> &payload);
   void update_display_(uint8_t command, const std::vector<uint8_t> &payload);
+  void publish_pool_temp_(const std::string &text);
   void send_frame_(const uint8_t payload[3]);
   void schedule_from_slot_();
   void start_hold_();
@@ -101,6 +104,7 @@ class PoolController : public Component {
   PoolSwitch *pump_b_entity_{nullptr};
   HeaterPumpSelect *heater_entity_{nullptr};
   text_sensor::TextSensor *blower_state_entity_{nullptr};
+  sensor::Sensor *pool_temp_entity_{nullptr};
 
   bool in_frame_{false};
   bool escaped_{false};

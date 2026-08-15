@@ -1,11 +1,16 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import button, select, switch, text_sensor, uart
-from esphome.const import CONF_ID
+from esphome.components import button, select, sensor, switch, text_sensor, uart
+from esphome.const import (
+    CONF_ID,
+    DEVICE_CLASS_TEMPERATURE,
+    STATE_CLASS_MEASUREMENT,
+    UNIT_CELSIUS,
+)
 from esphome import pins
 
 DEPENDENCIES = ["uart"]
-AUTO_LOAD = ["button", "select", "switch", "text_sensor"]
+AUTO_LOAD = ["button", "select", "sensor", "switch", "text_sensor"]
 
 CONF_DIRECTION_PIN = "direction_pin"
 CONF_PUMP_A = "pump_a"
@@ -13,6 +18,7 @@ CONF_PUMP_B = "pump_b"
 CONF_HEATER_PUMP = "heater_pump"
 CONF_BLOWER_CYCLE = "blower_cycle"
 CONF_BLOWER_STATE = "blower_state"
+CONF_POOL_TEMP = "pool_temp"
 
 pool_controller_ns = cg.esphome_ns.namespace("pool_controller")
 PoolController = pool_controller_ns.class_("PoolController", cg.Component)
@@ -30,6 +36,12 @@ CONFIG_SCHEMA = (
             cv.Required(CONF_HEATER_PUMP): select.select_schema(HeaterPumpSelect),
             cv.Required(CONF_BLOWER_CYCLE): button.button_schema(BlowerCycleButton),
             cv.Required(CONF_BLOWER_STATE): text_sensor.text_sensor_schema(),
+            cv.Optional(CONF_POOL_TEMP): sensor.sensor_schema(
+                unit_of_measurement=UNIT_CELSIUS,
+                accuracy_decimals=2,
+                device_class=DEVICE_CLASS_TEMPERATURE,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
@@ -69,3 +81,7 @@ async def to_code(config):
 
     blower_state = await text_sensor.new_text_sensor(config[CONF_BLOWER_STATE])
     cg.add(controller.set_blower_state(blower_state))
+
+    if CONF_POOL_TEMP in config:
+        pool_temp = await sensor.new_sensor(config[CONF_POOL_TEMP])
+        cg.add(controller.set_pool_temp(pool_temp))

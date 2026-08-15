@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include <cstdlib>
 
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
@@ -241,10 +242,12 @@ std::string PoolController::upper_(std::string value) {
 }
 
 void PoolController::update_display_(uint8_t command, const std::vector<uint8_t> &payload) {
-  if (command == 0x21)
+  if (command == 0x21) {
     this->display_21_ = display_text_(payload);
-  else
+  } else {
     this->display_22_ = display_text_(payload);
+    this->publish_pool_temp_(this->display_22_);
+  }
 
   const std::string combined = upper_(this->display_21_ + " " + this->display_22_);
   if (combined.find("BLOWER") == std::string::npos)
@@ -267,6 +270,27 @@ void PoolController::update_display_(uint8_t command, const std::vector<uint8_t>
     if (this->blower_state_entity_ != nullptr)
       this->blower_state_entity_->publish_state(state);
   }
+}
+
+void PoolController::publish_pool_temp_(const std::string &text) {
+  if (this->pool_temp_entity_ == nullptr)
+    return;
+  const std::string upper = upper_(text);
+  if (upper.find("POOL") == std::string::npos || upper.find("TEMP") == std::string::npos)
+    return;
+  std::string number;
+  bool started = false;
+  for (char c : text) {
+    if ((c >= '0' && c <= '9') || c == '.' || (c == '-' && !started)) {
+      number.push_back(c);
+      started = true;
+    } else if (started) {
+      break;
+    }
+  }
+  if (number.empty())
+    return;
+  this->pool_temp_entity_->publish_state(strtof(number.c_str(), nullptr));
 }
 
 bool PoolController::expected_state_seen_() const {
