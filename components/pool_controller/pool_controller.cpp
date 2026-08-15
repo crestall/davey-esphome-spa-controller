@@ -177,10 +177,10 @@ void PoolController::send_frame_(const uint8_t payload[3]) {
   std::vector<uint8_t> frame;
   frame.reserve(10);
   frame.push_back(STX);
-  uint8_t checksum = 0x80;
+  uint8_t checksum = 0;
   const uint8_t logical[4] = {0x80, payload[0], payload[1], payload[2]};
   for (uint8_t value : logical) {
-    checksum ^= value == 0x80 ? 0x80 : value;
+    checksum ^= value;
     if (value == STX || value == ETX || value == DLE)
       frame.push_back(DLE);
     frame.push_back(value);
