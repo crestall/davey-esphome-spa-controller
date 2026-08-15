@@ -75,3 +75,17 @@ pool_controller:
   blower_state:
     name: Blower State
     icon: mdi:fan
+
+  pool_temp:
+    name: Pool Temp
+    icon: mdi:pool-thermometer
+
+  set_temp:
+    name: Set Temp
+    icon: mdi:thermometer-lines
+
+  display_line_1:
+    name: Display Line 1
+
+  display_line_2:
+    name: Display Line 2

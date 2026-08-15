@@ -55,6 +55,9 @@ class PoolController : public Component {
   void set_heater_pump(HeaterPumpSelect *entity) { heater_entity_ = entity; }
   void set_blower_state(text_sensor::TextSensor *entity) { blower_state_entity_ = entity; }
   void set_pool_temp(sensor::Sensor *entity) { pool_temp_entity_ = entity; }
+  void set_set_temp(sensor::Sensor *entity) { set_temp_entity_ = entity; }
+  void set_display_line_1(text_sensor::TextSensor *entity) { display_line_1_entity_ = entity; }
+  void set_display_line_2(text_sensor::TextSensor *entity) { display_line_2_entity_ = entity; }
 
   void setup() override;
   void loop() override;
@@ -86,7 +89,7 @@ class PoolController : public Component {
   void handle_frame_(uint8_t command, const std::vector<uint8_t> &payload);
   void update_equipment_(const std::vector<uint8_t> &payload);
   void update_display_(uint8_t command, const std::vector<uint8_t> &payload);
-  void publish_pool_temp_(const std::string &text);
+  void publish_temp_(sensor::Sensor *entity, const std::string &text, const char *tag);
   void send_frame_(const uint8_t payload[3]);
   void schedule_from_slot_();
   void start_hold_();
@@ -105,6 +108,9 @@ class PoolController : public Component {
   HeaterPumpSelect *heater_entity_{nullptr};
   text_sensor::TextSensor *blower_state_entity_{nullptr};
   sensor::Sensor *pool_temp_entity_{nullptr};
+  sensor::Sensor *set_temp_entity_{nullptr};
+  text_sensor::TextSensor *display_line_1_entity_{nullptr};
+  text_sensor::TextSensor *display_line_2_entity_{nullptr};
 
   bool in_frame_{false};
   bool escaped_{false};

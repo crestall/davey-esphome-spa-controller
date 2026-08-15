@@ -19,6 +19,9 @@ CONF_HEATER_PUMP = "heater_pump"
 CONF_BLOWER_CYCLE = "blower_cycle"
 CONF_BLOWER_STATE = "blower_state"
 CONF_POOL_TEMP = "pool_temp"
+CONF_SET_TEMP = "set_temp"
+CONF_DISPLAY_LINE_1 = "display_line_1"
+CONF_DISPLAY_LINE_2 = "display_line_2"
 
 pool_controller_ns = cg.esphome_ns.namespace("pool_controller")
 PoolController = pool_controller_ns.class_("PoolController", cg.Component)
@@ -42,6 +45,14 @@ CONFIG_SCHEMA = (
                 device_class=DEVICE_CLASS_TEMPERATURE,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
+            cv.Optional(CONF_SET_TEMP): sensor.sensor_schema(
+                unit_of_measurement=UNIT_CELSIUS,
+                accuracy_decimals=2,
+                device_class=DEVICE_CLASS_TEMPERATURE,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
+            cv.Optional(CONF_DISPLAY_LINE_1): text_sensor.text_sensor_schema(),
+            cv.Optional(CONF_DISPLAY_LINE_2): text_sensor.text_sensor_schema(),
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
@@ -85,3 +96,15 @@ async def to_code(config):
     if CONF_POOL_TEMP in config:
         pool_temp = await sensor.new_sensor(config[CONF_POOL_TEMP])
         cg.add(controller.set_pool_temp(pool_temp))
+
+    if CONF_SET_TEMP in config:
+        set_temp = await sensor.new_sensor(config[CONF_SET_TEMP])
+        cg.add(controller.set_set_temp(set_temp))
+
+    if CONF_DISPLAY_LINE_1 in config:
+        display_line_1 = await text_sensor.new_text_sensor(config[CONF_DISPLAY_LINE_1])
+        cg.add(controller.set_display_line_1(display_line_1))
+
+    if CONF_DISPLAY_LINE_2 in config:
+        display_line_2 = await text_sensor.new_text_sensor(config[CONF_DISPLAY_LINE_2])
+        cg.add(controller.set_display_line_2(display_line_2))

@@ -242,12 +242,18 @@ std::string PoolController::upper_(std::string value) {
 }
 
 void PoolController::update_display_(uint8_t command, const std::vector<uint8_t> &payload) {
+  const std::string text = display_text_(payload);
   if (command == 0x21) {
-    this->display_21_ = display_text_(payload);
+    if (text != this->display_21_ && this->display_line_1_entity_ != nullptr)
+      this->display_line_1_entity_->publish_state(text);
+    this->display_21_ = text;
   } else {
-    this->display_22_ = display_text_(payload);
-    this->publish_pool_temp_(this->display_22_);
+    if (text != this->display_22_ && this->display_line_2_entity_ != nullptr)
+      this->display_line_2_entity_->publish_state(text);
+    this->display_22_ = text;
   }
+  this->publish_temp_(this->pool_temp_entity_, text, "POOL");
+  this->publish_temp_(this->set_temp_entity_, text, "SET");
 
   const std::string combined = upper_(this->display_21_ + " " + this->display_22_);
   if (combined.find("BLOWER") == std::string::npos)
@@ -272,11 +278,11 @@ void PoolController::update_display_(uint8_t command, const std::vector<uint8_t>
   }
 }
 
-void PoolController::publish_pool_temp_(const std::string &text) {
-  if (this->pool_temp_entity_ == nullptr)
+void PoolController::publish_temp_(sensor::Sensor *entity, const std::string &text, const char *tag) {
+  if (entity == nullptr)
     return;
   const std::string upper = upper_(text);
-  if (upper.find("POOL") == std::string::npos || upper.find("TEMP") == std::string::npos)
+  if (upper.find(tag) == std::string::npos || upper.find("TEMP") == std::string::npos)
     return;
   std::string number;
   bool started = false;
@@ -290,7 +296,7 @@ void PoolController::publish_pool_temp_(const std::string &text) {
   }
   if (number.empty())
     return;
-  this->pool_temp_entity_->publish_state(strtof(number.c_str(), nullptr));
+  entity->publish_state(strtof(number.c_str(), nullptr));
 }
 
 bool PoolController::expected_state_seen_() const {
