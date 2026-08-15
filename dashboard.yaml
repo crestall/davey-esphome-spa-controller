@@ -168,6 +168,9 @@ views:
       - type: entities
         title: Controller Feedback
         entities:
+          - entity: sensor.controller_time
+            name: Controller Time
+            icon: mdi:clock-outline
           - entity: sensor.pool_temp
             name: Pool Temp
           - entity: sensor.set_temp
