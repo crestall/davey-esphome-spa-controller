@@ -24,7 +24,7 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(PoolController),
-            cv.Required(CONF_DIRECTION_PIN): pins.gpio_output_pin_schema,
+            cv.Optional(CONF_DIRECTION_PIN): pins.gpio_output_pin_schema,
             cv.Required(CONF_PUMP_A): switch.switch_schema(PoolSwitch),
             cv.Required(CONF_PUMP_B): switch.switch_schema(PoolSwitch),
             cv.Required(CONF_HEATER_PUMP): select.select_schema(HeaterPumpSelect),
@@ -42,8 +42,9 @@ async def to_code(config):
     await cg.register_component(controller, config)
     await uart.register_uart_device(controller, config)
 
-    direction_pin = await cg.gpio_pin_expression(config[CONF_DIRECTION_PIN])
-    cg.add(controller.set_direction_pin(direction_pin))
+    if CONF_DIRECTION_PIN in config:
+        direction_pin = await cg.gpio_pin_expression(config[CONF_DIRECTION_PIN])
+        cg.add(controller.set_direction_pin(direction_pin))
 
     pump_a_config = config[CONF_PUMP_A]
     pump_a = cg.new_Pvariable(pump_a_config[CONF_ID], controller, 0)

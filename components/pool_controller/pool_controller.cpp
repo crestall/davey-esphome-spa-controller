@@ -25,15 +25,18 @@ void HeaterPumpSelect::control(const std::string &value) { this->parent_->reques
 void BlowerCycleButton::press_action() { this->parent_->request_blower_cycle(); }
 
 void PoolController::setup() {
-  this->direction_pin_->setup();
-  this->direction_pin_->digital_write(false);
+  if (this->direction_pin_ != nullptr) {
+    this->direction_pin_->setup();
+    this->direction_pin_->digital_write(false);
+  }
   this->logical_.reserve(64);
   ESP_LOGI(TAG, "Listening for proprietary pool traffic at 19200 8N1");
 }
 
 void PoolController::dump_config() {
   ESP_LOGCONFIG(TAG, "Pool controller:");
-  LOG_PIN("  RS-485 direction pin: ", this->direction_pin_);
+  if (this->direction_pin_ != nullptr)
+    LOG_PIN("  RS-485 direction pin: ", this->direction_pin_);
 }
 
 bool PoolController::deadline_reached_(uint32_t now, uint32_t deadline) {
@@ -184,11 +187,14 @@ void PoolController::send_frame_(const uint8_t payload[3]) {
   frame.push_back(ETX);
   frame.push_back(checksum);
 
-  this->direction_pin_->digital_write(true);
-  delay(2);
+  if (this->direction_pin_ != nullptr) {
+    this->direction_pin_->digital_write(true);
+    delay(2);
+  }
   this->uart_parent_->write_array(frame.data(), frame.size());
   this->uart_parent_->flush();
-  this->direction_pin_->digital_write(false);
+  if (this->direction_pin_ != nullptr)
+    this->direction_pin_->digital_write(false);
 }
 
 void PoolController::update_equipment_(const std::vector<uint8_t> &payload) {
