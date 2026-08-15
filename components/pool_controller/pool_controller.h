@@ -76,6 +76,7 @@ class PoolController : public Component {
   void set_cmd_28(text_sensor::TextSensor *entity) { cmd_28_entity_ = entity; }
   void set_cmd_31(text_sensor::TextSensor *entity) { cmd_31_entity_ = entity; }
   void set_cmd_32(text_sensor::TextSensor *entity) { cmd_32_entity_ = entity; }
+  void set_controller_time(text_sensor::TextSensor *entity) { controller_time_entity_ = entity; }
 
   void setup() override;
   void loop() override;
@@ -110,6 +111,7 @@ class PoolController : public Component {
   void update_display_(uint8_t command, const std::vector<uint8_t> &payload);
   void publish_temp_(sensor::Sensor *entity, const std::string &text, const char *tag);
   void publish_hex_(text_sensor::TextSensor *entity, const std::vector<uint8_t> &payload, std::string &last);
+  void update_clock_(const std::vector<uint8_t> &payload);
   void send_frame_(const uint8_t payload[3]);
   void schedule_from_slot_();
   void start_hold_();
@@ -135,6 +137,7 @@ class PoolController : public Component {
   text_sensor::TextSensor *cmd_28_entity_{nullptr};
   text_sensor::TextSensor *cmd_31_entity_{nullptr};
   text_sensor::TextSensor *cmd_32_entity_{nullptr};
+  text_sensor::TextSensor *controller_time_entity_{nullptr};
 
   bool in_frame_{false};
   bool escaped_{false};
@@ -151,6 +154,7 @@ class PoolController : public Component {
   std::string cmd_28_last_;
   std::string cmd_31_last_;
   std::string cmd_32_last_;
+  std::string controller_time_;
 
   ActionKind action_{ActionKind::NONE};
   Phase phase_{Phase::IDLE};

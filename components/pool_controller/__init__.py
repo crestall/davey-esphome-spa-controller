@@ -31,6 +31,7 @@ CONF_CMD_25 = "cmd_25"
 CONF_CMD_28 = "cmd_28"
 CONF_CMD_31 = "cmd_31"
 CONF_CMD_32 = "cmd_32"
+CONF_CONTROLLER_TIME = "controller_time"
 
 pool_controller_ns = cg.esphome_ns.namespace("pool_controller")
 PoolController = pool_controller_ns.class_("PoolController", cg.Component)
@@ -76,6 +77,7 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_CMD_28): text_sensor.text_sensor_schema(),
             cv.Optional(CONF_CMD_31): text_sensor.text_sensor_schema(),
             cv.Optional(CONF_CMD_32): text_sensor.text_sensor_schema(),
+            cv.Optional(CONF_CONTROLLER_TIME): text_sensor.text_sensor_schema(),
             cv.Optional(CONF_MENU_UP): button.button_schema(KeyButton),
             cv.Optional(CONF_MENU_DOWN): button.button_schema(KeyButton),
             cv.Optional(CONF_MENU_SELECT): button.button_schema(KeyButton),
@@ -146,6 +148,10 @@ async def to_code(config):
         if conf_key in config:
             diag = await text_sensor.new_text_sensor(config[conf_key])
             cg.add(setter(diag))
+
+    if CONF_CONTROLLER_TIME in config:
+        controller_time = await text_sensor.new_text_sensor(config[CONF_CONTROLLER_TIME])
+        cg.add(controller.set_controller_time(controller_time))
 
     for conf_key, (p0, p1, p2, hold_ms) in KEY_BUTTONS.items():
         if conf_key in config:

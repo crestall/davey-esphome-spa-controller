@@ -90,6 +90,10 @@ pool_controller:
   display_line_2:
     name: Display Line 2
 
+  controller_time:
+    name: Controller Time
+    icon: mdi:clock-outline
+
   # Raw diagnostic dumps of undecoded controller frames (hex payload).
   cmd_25:
     name: Cmd 25

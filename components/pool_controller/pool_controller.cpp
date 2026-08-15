@@ -164,6 +164,7 @@ void PoolController::handle_frame_(uint8_t command, const std::vector<uint8_t> &
     this->update_display_(command, payload);
   } else if (command == 0x25) {
     this->publish_hex_(this->cmd_25_entity_, payload, this->cmd_25_last_);
+    this->update_clock_(payload);
   } else if (command == 0x28) {
     this->publish_hex_(this->cmd_28_entity_, payload, this->cmd_28_last_);
   } else if (command == 0x31) {
@@ -325,6 +326,23 @@ void PoolController::publish_hex_(text_sensor::TextSensor *entity, const std::ve
   if (hex != last) {
     last = hex;
     entity->publish_state(hex);
+  }
+}
+
+// Command 0x25 carries the controller clock: byte 0 = hours, byte 1 = minutes.
+void PoolController::update_clock_(const std::vector<uint8_t> &payload) {
+  if (this->controller_time_entity_ == nullptr || payload.size() < 2)
+    return;
+  const uint8_t hours = payload[0];
+  const uint8_t minutes = payload[1];
+  if (hours > 23 || minutes > 59)
+    return;
+  char buf[6];
+  snprintf(buf, sizeof(buf), "%02u:%02u", (unsigned) hours, (unsigned) minutes);
+  std::string text(buf);
+  if (text != this->controller_time_) {
+    this->controller_time_ = text;
+    this->controller_time_entity_->publish_state(text);
   }
 }
 
