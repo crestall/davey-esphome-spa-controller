@@ -125,6 +125,13 @@ class PoolController : public Component {
   int8_t expected_state_{-1};
   bool press_accepted_{false};
   bool action_failed_{false};
+
+  uint32_t rx_byte_count_{0};
+  uint32_t last_reported_bytes_{0};
+  uint32_t frame_count_{0};
+  uint32_t checksum_error_count_{0};
+  uint32_t last_report_ms_{0};
+  std::vector<uint8_t> rx_sample_;
 };
 
 }  // namespace pool_controller

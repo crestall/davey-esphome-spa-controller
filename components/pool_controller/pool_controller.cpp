@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdio>
 
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
@@ -38,12 +39,35 @@ bool PoolController::deadline_reached_(uint32_t now, uint32_t deadline) {
 void PoolController::loop() {
   while (this->uart_parent_->available()) {
     uint8_t value;
-    if (this->uart_parent_->read_byte(&value))
+    if (this->uart_parent_->read_byte(&value)) {
+      this->rx_byte_count_++;
+      if (this->rx_sample_.size() < 32)
+        this->rx_sample_.push_back(value);
+      ESP_LOGV(TAG, "RX 0x%02X", value);
       this->consume_byte_(value);
+    }
   }
 
   const uint32_t now_us = micros();
   const uint32_t now_ms = millis();
+
+  if (now_ms - this->last_report_ms_ >= 5000) {
+    this->last_report_ms_ = now_ms;
+    if (this->rx_byte_count_ == this->last_reported_bytes_) {
+      ESP_LOGI(TAG, "No serial bytes received (total=%u). Check RS-485 A/B polarity, common ground, and 19200 8N1.",
+               this->rx_byte_count_);
+    } else {
+      char hex[8 * 32];
+      size_t pos = 0;
+      for (uint8_t b : this->rx_sample_)
+        pos += snprintf(hex + pos, sizeof(hex) - pos, "%02X ", b);
+      ESP_LOGI(TAG, "Serial RX total_bytes=%u frames=%u checksum_errors=%u sample=%s", this->rx_byte_count_,
+               this->frame_count_, this->checksum_error_count_, hex);
+    }
+    this->last_reported_bytes_ = this->rx_byte_count_;
+    this->rx_sample_.clear();
+  }
+
   if (this->phase_ == Phase::PRESS_SCHEDULED && deadline_reached_(now_us, this->transmit_at_)) {
     this->send_frame_(this->action_payload_);
     this->phase_ = Phase::WAIT_PRESS_ACK;
@@ -79,9 +103,12 @@ void PoolController::consume_byte_(uint8_t value) {
     for (uint8_t byte : this->logical_)
       checksum ^= byte;
     if (!this->logical_.empty() && checksum == value) {
+      this->frame_count_++;
       std::vector<uint8_t> payload(this->logical_.begin() + 1, this->logical_.end());
+      ESP_LOGD(TAG, "Frame cmd=0x%02X payload_len=%u", this->logical_[0], (unsigned) payload.size());
       this->handle_frame_(this->logical_[0], payload);
     } else {
+      this->checksum_error_count_++;
       ESP_LOGW(TAG, "Discarding frame with invalid checksum");
     }
     this->in_frame_ = false;

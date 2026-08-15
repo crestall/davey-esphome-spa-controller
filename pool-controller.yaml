@@ -15,7 +15,7 @@ esp32:
     type: arduino
 
 logger:
-  level: INFO
+  level: DEBUG
 
 api:
 
@@ -50,6 +50,13 @@ uart:
   parity: NONE
   stop_bits: 1
   rx_buffer_size: 512
+  debug:
+    direction: RX
+    dummy_receiver: false
+    after:
+      delimiter: [0x03]
+    sequence:
+      - lambda: UARTDebug::log_hex(direction, bytes, ' ');
 
 pool_controller:
   id: pool_interface
