@@ -29,6 +29,7 @@ views:
           ```text
           ╔════════════════════════════╗
           ║        DAVEY  SP1200       ║
+          ║ {{ "%-26s" | format("Time  " ~ states('sensor.controller_time')) }} ║
           ╠════════════════════════════╣
           ║ {{ "%-26s" | format(states('sensor.display_line_1')) }} ║
           ║ {{ "%-26s" | format(states('sensor.display_line_2')) }} ║
