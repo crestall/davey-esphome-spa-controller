@@ -25,6 +25,8 @@ void HeaterPumpSelect::control(const std::string &value) { this->parent_->reques
 
 void BlowerCycleButton::press_action() { this->parent_->request_blower_cycle(); }
 
+void KeyButton::press_action() { this->parent_->request_key(this->p0_, this->p1_, this->p2_, this->hold_ms_); }
+
 void PoolController::setup() {
   if (this->direction_pin_ != nullptr) {
     this->direction_pin_->setup();
@@ -426,6 +428,22 @@ void PoolController::request_blower_cycle() {
   this->action_payload_[1] = 0x00;
   this->action_payload_[2] = 0x01;
   this->hold_ms_ = 300;
+  this->attempt_ = 0;
+  this->press_accepted_ = false;
+  this->action_failed_ = false;
+  this->phase_ = Phase::WAIT_PRESS_SLOT;
+}
+
+void PoolController::request_key(uint8_t p0, uint8_t p1, uint8_t p2, uint32_t hold_ms) {
+  if (this->phase_ != Phase::IDLE) {
+    ESP_LOGW(TAG, "Another pool control is already in progress");
+    return;
+  }
+  this->action_ = ActionKind::KEY;
+  this->action_payload_[0] = p0;
+  this->action_payload_[1] = p1;
+  this->action_payload_[2] = p2;
+  this->hold_ms_ = hold_ms;
   this->attempt_ = 0;
   this->press_accepted_ = false;
   this->action_failed_ = false;

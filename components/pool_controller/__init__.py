@@ -18,6 +18,11 @@ CONF_PUMP_B = "pump_b"
 CONF_HEATER_PUMP = "heater_pump"
 CONF_BLOWER_CYCLE = "blower_cycle"
 CONF_BLOWER_STATE = "blower_state"
+CONF_MENU_UP = "menu_up"
+CONF_MENU_DOWN = "menu_down"
+CONF_MENU_SELECT = "menu_select"
+CONF_LIGHT_INTENSITY = "light_intensity"
+CONF_LIGHT_MODE = "light_mode"
 CONF_POOL_TEMP = "pool_temp"
 CONF_SET_TEMP = "set_temp"
 CONF_DISPLAY_LINE_1 = "display_line_1"
@@ -28,6 +33,16 @@ PoolController = pool_controller_ns.class_("PoolController", cg.Component)
 PoolSwitch = pool_controller_ns.class_("PoolSwitch", switch.Switch)
 HeaterPumpSelect = pool_controller_ns.class_("HeaterPumpSelect", select.Select)
 BlowerCycleButton = pool_controller_ns.class_("BlowerCycleButton", button.Button)
+KeyButton = pool_controller_ns.class_("KeyButton", button.Button)
+
+# conf key -> (payload byte 0, 1, 2, hold_ms) per the SP1200 command-80 map
+KEY_BUTTONS = {
+    CONF_MENU_UP: (0x01, 0x00, 0x01, 200),
+    CONF_MENU_DOWN: (0x04, 0x00, 0x01, 200),
+    CONF_MENU_SELECT: (0x02, 0x00, 0x01, 200),
+    CONF_LIGHT_INTENSITY: (0x00, 0x01, 0x01, 300),
+    CONF_LIGHT_MODE: (0x40, 0x00, 0x01, 300),
+}
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -53,6 +68,11 @@ CONFIG_SCHEMA = (
             ),
             cv.Optional(CONF_DISPLAY_LINE_1): text_sensor.text_sensor_schema(),
             cv.Optional(CONF_DISPLAY_LINE_2): text_sensor.text_sensor_schema(),
+            cv.Optional(CONF_MENU_UP): button.button_schema(KeyButton),
+            cv.Optional(CONF_MENU_DOWN): button.button_schema(KeyButton),
+            cv.Optional(CONF_MENU_SELECT): button.button_schema(KeyButton),
+            cv.Optional(CONF_LIGHT_INTENSITY): button.button_schema(KeyButton),
+            cv.Optional(CONF_LIGHT_MODE): button.button_schema(KeyButton),
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
@@ -108,3 +128,9 @@ async def to_code(config):
     if CONF_DISPLAY_LINE_2 in config:
         display_line_2 = await text_sensor.new_text_sensor(config[CONF_DISPLAY_LINE_2])
         cg.add(controller.set_display_line_2(display_line_2))
+
+    for conf_key, (p0, p1, p2, hold_ms) in KEY_BUTTONS.items():
+        if conf_key in config:
+            key_config = config[conf_key]
+            key = cg.new_Pvariable(key_config[CONF_ID], controller, p0, p1, p2, hold_ms)
+            await button.register_button(key, key_config)

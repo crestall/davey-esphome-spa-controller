@@ -46,6 +46,20 @@ class BlowerCycleButton : public button::Button {
   PoolController *parent_;
 };
 
+class KeyButton : public button::Button {
+ public:
+  KeyButton(PoolController *parent, uint8_t p0, uint8_t p1, uint8_t p2, uint32_t hold_ms)
+      : parent_(parent), p0_(p0), p1_(p1), p2_(p2), hold_ms_(hold_ms) {}
+
+ protected:
+  void press_action() override;
+  PoolController *parent_;
+  uint8_t p0_;
+  uint8_t p1_;
+  uint8_t p2_;
+  uint32_t hold_ms_;
+};
+
 class PoolController : public Component {
  public:
   void set_uart_parent(uart::UARTComponent *parent) { uart_parent_ = parent; }
@@ -67,9 +81,10 @@ class PoolController : public Component {
   void request_pump(uint8_t pump, bool state);
   void request_heater(const std::string &state);
   void request_blower_cycle();
+  void request_key(uint8_t p0, uint8_t p1, uint8_t p2, uint32_t hold_ms);
 
  protected:
-  enum class ActionKind : uint8_t { NONE, PUMP_A, PUMP_B, HEATER, BLOWER };
+  enum class ActionKind : uint8_t { NONE, PUMP_A, PUMP_B, HEATER, BLOWER, KEY };
   enum class Phase : uint8_t {
     IDLE,
     WAIT_PRESS_SLOT,

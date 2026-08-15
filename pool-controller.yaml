@@ -89,3 +89,19 @@ pool_controller:
 
   display_line_2:
     name: Display Line 2
+
+  menu_up:
+    name: Menu Up
+    icon: mdi:menu-up
+  menu_down:
+    name: Menu Down
+    icon: mdi:menu-down
+  menu_select:
+    name: Menu Select
+    icon: mdi:menu
+  light_intensity:
+    name: Light Intensity
+    icon: mdi:brightness-6
+  light_mode:
+    name: Light Mode
+    icon: mdi:palette
