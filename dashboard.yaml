@@ -1,0 +1,180 @@
+# =====================================================================
+#  Swimming Pool Dashboard  (Davey SP1200 / Spa Controller)
+# ---------------------------------------------------------------------
+#  Home Assistant Lovelace dashboard for the pool_controller component.
+#
+#  How to use:
+#    Settings -> Dashboards -> (+ Add Dashboard) -> New from scratch
+#    Open the new dashboard -> top-right pencil -> 3-dot menu ->
+#    "Edit in YAML" (Raw configuration editor) -> paste ALL of this.
+#
+#  Entity IDs below use plain slugs (pump_a, pool_temp, ...). Home
+#  Assistant usually prefixes ESPHome entities with the device name
+#  (and sometimes an area), e.g. switch.davey_spa_controller_pump_a or
+#  switch.garage_davey_spa_controller_pump_a. Confirm the exact IDs at
+#  Settings -> Devices & Services -> your device, or Developer Tools ->
+#  States, and find/replace the prefix here to match.
+# =====================================================================
+title: Swimming Pool
+views:
+  - title: Swimming Pool
+    path: swimming-pool
+    icon: mdi:pool
+    cards:
+      # ---------------------------------------------------------------
+      #  LCD display widget  (mimics the SP1200 two-line screen)
+      # ---------------------------------------------------------------
+      - type: markdown
+        content: |
+          ```text
+          ╔════════════════════════════╗
+          ║        DAVEY  SP1200       ║
+          ╠════════════════════════════╣
+          ║ {{ "%-26s" | format(states('sensor.display_line_1')) }} ║
+          ║ {{ "%-26s" | format(states('sensor.display_line_2')) }} ║
+          ╠════════════════════════════╣
+          ║ Pool {{ "%5s" | format(states('sensor.pool_temp')) }} C   Set {{ "%5s" | format(states('sensor.set_temp')) }} C ║
+          ╚════════════════════════════╝
+          ```
+
+      # ---------------------------------------------------------------
+      #  Temperatures
+      # ---------------------------------------------------------------
+      - type: horizontal-stack
+        cards:
+          - type: gauge
+            entity: sensor.pool_temp
+            name: Pool Temp
+            unit: °C
+            needle: true
+            min: 0
+            max: 42
+            severity:
+              green: 28
+              yellow: 18
+              red: 0
+          - type: gauge
+            entity: sensor.set_temp
+            name: Set Temp
+            unit: °C
+            needle: true
+            min: 0
+            max: 42
+            severity:
+              green: 28
+              yellow: 18
+              red: 0
+
+      # ---------------------------------------------------------------
+      #  Keypad-style quick controls
+      # ---------------------------------------------------------------
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: Pump A
+            entity: switch.pump_a
+            icon: mdi:pump
+            show_state: true
+            tap_action:
+              action: toggle
+          - type: button
+            name: Pump B
+            entity: switch.pump_b
+            icon: mdi:pump
+            show_state: true
+            tap_action:
+              action: toggle
+          - type: button
+            name: Blower
+            entity: button.blower_cycle
+            icon: mdi:fan
+            tap_action:
+              action: toggle
+
+      # ---------------------------------------------------------------
+      #  Menu navigation (Up / SET / Down)
+      # ---------------------------------------------------------------
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: Up
+            entity: button.menu_up
+            icon: mdi:menu-up
+            tap_action:
+              action: toggle
+          - type: button
+            name: Menu / SET
+            entity: button.menu_select
+            icon: mdi:menu
+            tap_action:
+              action: toggle
+          - type: button
+            name: Down
+            entity: button.menu_down
+            icon: mdi:menu-down
+            tap_action:
+              action: toggle
+
+      # ---------------------------------------------------------------
+      #  Lighting
+      # ---------------------------------------------------------------
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: Light Intensity
+            entity: button.light_intensity
+            icon: mdi:brightness-6
+            tap_action:
+              action: toggle
+          - type: button
+            name: Light Mode
+            entity: button.light_mode
+            icon: mdi:palette
+            tap_action:
+              action: toggle
+
+      # ---------------------------------------------------------------
+      #  Full equipment controls
+      # ---------------------------------------------------------------
+      - type: entities
+        title: Equipment
+        state_color: true
+        entities:
+          - entity: switch.pump_a
+            name: Pump A
+          - entity: switch.pump_b
+            name: Pump B
+          - entity: select.heater_pump
+            name: Heater Pump
+          - entity: button.blower_cycle
+            name: Blower Cycle
+          - entity: sensor.blower_state
+            name: Blower State
+            icon: mdi:fan-alert
+          - entity: button.menu_up
+            name: Menu Up
+          - entity: button.menu_select
+            name: Menu Select
+          - entity: button.menu_down
+            name: Menu Down
+          - entity: button.light_intensity
+            name: Light Intensity
+          - entity: button.light_mode
+            name: Light Mode
+
+      # ---------------------------------------------------------------
+      #  Raw controller feedback (everything exposed)
+      # ---------------------------------------------------------------
+      - type: entities
+        title: Controller Feedback
+        entities:
+          - entity: sensor.pool_temp
+            name: Pool Temp
+          - entity: sensor.set_temp
+            name: Set Temp
+          - entity: sensor.display_line_1
+            name: Display Line 1
+          - entity: sensor.display_line_2
+            name: Display Line 2
+          - entity: sensor.blower_state
+            name: Blower State

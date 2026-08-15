@@ -3,7 +3,7 @@
 > [!CAUTION]
 > **Unofficial community project.** This software is not produced, approved, supported, or endorsed by Davey Water Products or ESPHome. Davey and related product names may be trademarks of their respective owners. Use this project entirely at your own risk.
 
-An ESPHome external component for selected spa/pool controller functions over an observed proprietary RS-485 interface. It exposes two pump switches, a heater-pump mode selector, and a blower cycle control to Home Assistant.
+An ESPHome external component for selected spa/pool controller functions over an observed proprietary RS-485 interface. It exposes pump switches, a heater-pump mode selector, a blower cycle control, pool and set-point temperatures, the raw controller display, and menu/lighting key presses to Home Assistant.
 
 ## Supported entities
 
@@ -14,15 +14,24 @@ An ESPHome external component for selected spa/pool controller functions over an
 | Heater Pump | Select: `OFF`, `AUTO`, `LOW` | Binary controller state | Physically verified |
 | Blower Cycle | Button | Input acknowledgement | Observed |
 | Blower State | Text sensor | Controller display text | Observed, not a verified binary state |
+| Pool Temp | Sensor (°C) | Parsed from controller display | Observed |
+| Set Temp | Sensor (°C) | Parsed from controller display | Observed |
+| Display Line 1 | Text sensor | Raw controller display line | Observed |
+| Display Line 2 | Text sensor | Raw controller display line | Observed |
+| Menu Up / Down / Select | Button | Input acknowledgement | Guarded, acts on current display context |
+| Light Intensity / Mode | Button | Input acknowledgement | Observed |
 
-The component waits for the controller's command-`0x30` response slot, transmits a framed command-`0x80` virtual key press, checks command-`0x38` acknowledgement, and releases the key. Pump and heater-pump changes additionally require matching command-`0x30` state feedback.
+All entities except the temperatures, display lines, and menu/lighting buttons are optional in the schema, so a configuration can expose only what it needs.
+
+The component waits for the controller's command-`0x30` response slot, transmits a framed command-`0x80` virtual key press, checks command-`0x38` acknowledgement, and releases the key. Pump and heater-pump changes additionally require matching command-`0x30` state feedback. The transmit checksum is the XOR of every logical byte (command plus payload), matching the receive parser.
 
 ## Important limitations
 
 - Compatibility has only been established against the controller traffic used during development. Product branding alone does not prove compatibility.
 - This is a reverse-engineered protocol, not a vendor specification.
 - The blower is a cycle button, not an absolute on/off switch. Its status is inferred from display text.
-- Lighting, menus, setpoint editing, schedules, and unknown protocol fields are intentionally not exposed.
+- Pool and set-point temperatures are parsed from the controller's display text, not from a dedicated binary field. They update only while the controller shows them.
+- Menu and lighting buttons are press-only. They act on whatever screen the controller is currently showing; use the display-line sensors for context. Setpoint editing, schedules, and unknown protocol fields are intentionally not decoded.
 - The exact spa connector pinout, bus polarity, voltage, grounding, and termination are installation-specific and are not defined by this project.
 - Pool and spa equipment can involve mains voltage, pumps, heaters, and unsafe water temperatures. Do not work on energized equipment and do not rely on this software as a safety control.
 
@@ -62,6 +71,15 @@ external_components:
 
 Pin a release tag instead of `main` for a stable installation once releases are available.
 
+## Home Assistant dashboard
+
+A ready-made Lovelace dashboard is included at [`dashboard.yaml`](dashboard.yaml). It provides an SP1200-style two-line display widget, pool/set-point temperature gauges, keypad-style pump and blower buttons, a menu navigation row, lighting buttons, and full equipment and controller-feedback lists.
+
+1. In Home Assistant, go to **Settings -> Dashboards -> Add Dashboard -> New dashboard from scratch**.
+2. Open the new dashboard, select the edit (pencil) icon, then the three-dot menu, and choose **Edit in YAML** (raw configuration editor).
+3. Paste the contents of [`dashboard.yaml`](dashboard.yaml).
+4. Adjust the entity ID prefix to match your device. Home Assistant usually prefixes ESPHome entities with the device (and sometimes area) name, for example `switch.davey_spa_controller_pump_a`. Confirm the exact IDs under **Settings -> Devices & Services** or **Developer Tools -> States**.
+
 ### Stale external component cache
 
 If a build log still shows `class PoolController : public Component, public uart::UARTDevice`, ESPHome is compiling an obsolete cached copy. Current `main` uses `UARTComponent` composition and does not contain that declaration.
@@ -93,6 +111,7 @@ See [Protocol discovery and confidence](docs/protocol-discovery.md) for the tech
 ```text
 components/pool_controller/  ESPHome Python schema and C++ component
 pool-controller.yaml         Home Assistant ESPHome configuration
+dashboard.yaml               Home Assistant Lovelace dashboard
 secrets.yaml.example         Credential field template only
 docs/                        Discovery method and protocol notes
 ```
