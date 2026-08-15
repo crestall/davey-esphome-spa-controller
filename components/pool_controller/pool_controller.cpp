@@ -14,6 +14,10 @@ static const char *const TAG = "pool_controller";
 static const uint8_t SLOT_DELAYS_MS[8] = {7, 6, 8, 5, 7, 6, 8, 5};
 static const uint8_t RELEASE_PAYLOAD[3] = {0x00, 0x00, 0x00};
 
+// Diagnostic toggle: when true, only count RX bytes and skip all frame parsing,
+// state handling and transmission. Used to isolate a boot-time crash/rollback.
+static constexpr bool LISTEN_ONLY_DIAGNOSTIC = true;
+
 void PoolSwitch::write_state(bool state) { this->parent_->request_pump(this->pump_, state); }
 
 void HeaterPumpSelect::control(const std::string &value) { this->parent_->request_heater(value); }
@@ -44,7 +48,8 @@ void PoolController::loop() {
       if (this->rx_sample_.size() < 32)
         this->rx_sample_.push_back(value);
       ESP_LOGV(TAG, "RX 0x%02X", value);
-      this->consume_byte_(value);
+      if (!LISTEN_ONLY_DIAGNOSTIC)
+        this->consume_byte_(value);
     }
   }
 
@@ -67,6 +72,9 @@ void PoolController::loop() {
     this->last_reported_bytes_ = this->rx_byte_count_;
     this->rx_sample_.clear();
   }
+
+  if (LISTEN_ONLY_DIAGNOSTIC)
+    return;
 
   if (this->phase_ == Phase::PRESS_SCHEDULED && deadline_reached_(now_us, this->transmit_at_)) {
     this->send_frame_(this->action_payload_);
