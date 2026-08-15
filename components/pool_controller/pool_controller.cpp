@@ -16,7 +16,7 @@ static const uint8_t RELEASE_PAYLOAD[3] = {0x00, 0x00, 0x00};
 
 // Diagnostic toggle: when true, only count RX bytes and skip all frame parsing,
 // state handling and transmission. Used to isolate a boot-time crash/rollback.
-static constexpr bool LISTEN_ONLY_DIAGNOSTIC = true;
+static constexpr bool LISTEN_ONLY_DIAGNOSTIC = false;
 
 void PoolSwitch::write_state(bool state) { this->parent_->request_pump(this->pump_, state); }
 
@@ -63,14 +63,14 @@ void PoolController::loop() {
     this->last_report_ms_ = now_ms;
     if (this->rx_byte_count_ == this->last_reported_bytes_) {
       ESP_LOGI(TAG, "No serial bytes received (total=%u). Check RS-485 A/B polarity, common ground, and 19200 8N1.",
-               this->rx_byte_count_);
+               (unsigned) this->rx_byte_count_);
     } else {
       char hex[8 * 32];
       size_t pos = 0;
       for (uint8_t b : this->rx_sample_)
         pos += snprintf(hex + pos, sizeof(hex) - pos, "%02X ", b);
-      ESP_LOGI(TAG, "Serial RX total_bytes=%u frames=%u checksum_errors=%u sample=%s", this->rx_byte_count_,
-               this->frame_count_, this->checksum_error_count_, hex);
+      ESP_LOGI(TAG, "Serial RX total_bytes=%u frames=%u checksum_errors=%u sample=%s", (unsigned) this->rx_byte_count_,
+               (unsigned) this->frame_count_, (unsigned) this->checksum_error_count_, hex);
     }
     this->last_reported_bytes_ = this->rx_byte_count_;
     this->rx_sample_.clear();
