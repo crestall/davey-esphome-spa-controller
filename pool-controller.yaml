@@ -90,6 +90,24 @@ pool_controller:
   display_line_2:
     name: Display Line 2
 
+  # Raw diagnostic dumps of undecoded controller frames (hex payload).
+  cmd_25:
+    name: Cmd 25
+    icon: mdi:clock-digital
+    entity_category: diagnostic
+  cmd_28:
+    name: Cmd 28
+    icon: mdi:code-braces
+    entity_category: diagnostic
+  cmd_31:
+    name: Cmd 31
+    icon: mdi:code-braces
+    entity_category: diagnostic
+  cmd_32:
+    name: Cmd 32
+    icon: mdi:code-braces
+    entity_category: diagnostic
+
   menu_up:
     name: Menu Up
     icon: mdi:menu-up

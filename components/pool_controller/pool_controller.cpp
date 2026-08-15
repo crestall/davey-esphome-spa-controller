@@ -162,6 +162,14 @@ void PoolController::handle_frame_(uint8_t command, const std::vector<uint8_t> &
     }
   } else if (command == 0x21 || command == 0x22) {
     this->update_display_(command, payload);
+  } else if (command == 0x25) {
+    this->publish_hex_(this->cmd_25_entity_, payload, this->cmd_25_last_);
+  } else if (command == 0x28) {
+    this->publish_hex_(this->cmd_28_entity_, payload, this->cmd_28_last_);
+  } else if (command == 0x31) {
+    this->publish_hex_(this->cmd_31_entity_, payload, this->cmd_31_last_);
+  } else if (command == 0x32) {
+    this->publish_hex_(this->cmd_32_entity_, payload, this->cmd_32_last_);
   }
 }
 
@@ -299,6 +307,25 @@ void PoolController::publish_temp_(sensor::Sensor *entity, const std::string &te
   if (number.empty())
     return;
   entity->publish_state(strtof(number.c_str(), nullptr));
+}
+
+void PoolController::publish_hex_(text_sensor::TextSensor *entity, const std::vector<uint8_t> &payload,
+                                 std::string &last) {
+  if (entity == nullptr)
+    return;
+  std::string hex;
+  hex.reserve(payload.size() * 3);
+  char buf[4];
+  for (uint8_t b : payload) {
+    snprintf(buf, sizeof(buf), "%02X ", b);
+    hex += buf;
+  }
+  if (!hex.empty())
+    hex.pop_back();
+  if (hex != last) {
+    last = hex;
+    entity->publish_state(hex);
+  }
 }
 
 bool PoolController::expected_state_seen_() const {
