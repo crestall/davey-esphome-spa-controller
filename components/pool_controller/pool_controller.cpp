@@ -72,8 +72,9 @@ void PoolController::loop() {
       size_t pos = 0;
       for (uint8_t b : this->rx_sample_)
         pos += snprintf(hex + pos, sizeof(hex) - pos, "%02X ", b);
-      ESP_LOGI(TAG, "Serial RX total_bytes=%u frames=%u checksum_errors=%u sample=%s", (unsigned) this->rx_byte_count_,
-               (unsigned) this->frame_count_, (unsigned) this->checksum_error_count_, hex);
+      ESP_LOGI(TAG, "Serial RX total_bytes=%u frames=%u checksum_errors=%u oversized_frames=%u sample=%s",
+               (unsigned) this->rx_byte_count_, (unsigned) this->frame_count_, (unsigned) this->checksum_error_count_,
+               (unsigned) this->oversized_frame_count_, hex);
     }
     this->last_reported_bytes_ = this->rx_byte_count_;
     this->rx_sample_.clear();
@@ -122,8 +123,9 @@ void PoolController::consume_byte_(uint8_t value) {
       ESP_LOGD(TAG, "Frame cmd=0x%02X payload_len=%u", this->logical_[0], (unsigned) payload.size());
       this->handle_frame_(this->logical_[0], payload);
     } else {
+      // Counted only; logging every occurrence flooded the log buffer and stalled
+      // the loop on a busy/noisy bus (the same cause as the earlier watchdog rollback).
       this->checksum_error_count_++;
-      ESP_LOGW(TAG, "Discarding frame with invalid checksum");
     }
     this->in_frame_ = false;
     return;
@@ -141,7 +143,8 @@ void PoolController::consume_byte_(uint8_t value) {
   }
 
   if (this->logical_.size() > 96) {
-    ESP_LOGW(TAG, "Discarding oversized frame");
+    // Counted only; see note above about avoiding per-event logging here.
+    this->oversized_frame_count_++;
     this->in_frame_ = false;
   }
 }

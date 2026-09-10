@@ -172,6 +172,7 @@ class PoolController : public Component {
   uint32_t last_reported_bytes_{0};
   uint32_t frame_count_{0};
   uint32_t checksum_error_count_{0};
+  uint32_t oversized_frame_count_{0};
   uint32_t last_report_ms_{0};
   std::vector<uint8_t> rx_sample_;
 };
